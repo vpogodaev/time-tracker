@@ -1,30 +1,33 @@
-import React, { Component } from 'react'
+import React, {
+  Component
+} from 'react'
+import { Container, Row } from 'react-bootstrap';
 
 import Timer from '../timer';
 
 import './styles.scss';
 
 class App extends Component {
-  constructor(props) {
-    super(props);
+  // constructor(props) {
+  //   super(props);
 
-    // this.watch = new StopWatch(() => { this.updateSec(this.watch.getTime()) });
-    // this.timer = new Timer(
-    //   10,
-    //   () => { this.updateSec(this.timer.getTime()) },
-    //   () => { this.setState({ over: true }) },
-    //   true,
-    //   // 5,
-    //   // () => {
-    //   //   console.log('Overtime!', this.timer.getTime())
-    //   // }
-    // );
+  //   // this.watch = new StopWatch(() => { this.updateSec(this.watch.getTime()) });
+  //   // this.timer = new Timer(
+  //   //   10,
+  //   //   () => { this.updateSec(this.timer.getTime()) },
+  //   //   () => { this.setState({ over: true }) },
+  //   //   true,
+  //   //   // 5,
+  //   //   // () => {
+  //   //   //   console.log('Overtime!', this.timer.getTime())
+  //   //   // }
+  //   // );
 
-    // this.handleClick = this.handleClick.bind(this);
-    // this.start = this.start.bind(this);
-    // this.stop = this.stop.bind(this);
-    //this.log = this.log.bind(this);
-  }
+  //   // this.handleClick = this.handleClick.bind(this);
+  //   // this.start = this.start.bind(this);
+  //   // this.stop = this.stop.bind(this);
+  //   //this.log = this.log.bind(this);
+  // }
 
   // state = {
   //   isToggled: true,
@@ -83,7 +86,11 @@ class App extends Component {
   // }
   render() {
     return (
-      <Timer></Timer>
+      <Container>
+        <Row>
+          <Timer />
+        </Row>
+      </Container>
     );
   }
 }
