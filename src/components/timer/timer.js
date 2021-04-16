@@ -3,18 +3,17 @@ import Clock from "../clock";
 
 import "./styles.scss";
 
-const tryToRunVals = {
+const runVals = {
   d: "default",
   s: "start",
   p: "pause",
+  r: "repeat",
 };
 
 class Timer extends Component {
   constructor(props) {
     super(props);
 
-    // this.handleStart = this.handleStart.bind(this);
-    // this.handlePause = this.handlePause.bind(this);
     this.handleTimeChange = this.handleTimeChange.bind(this);
 
     this.state = {
@@ -33,24 +32,26 @@ class Timer extends Component {
   //   }
   // }
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps, prevState) {
     const prevTryToRun = prevProps.tryToRun;
     const { tryToRun } = this.props;
 
     console.group("componentDidUpdate");
-    console.log("prevTryToRun", prevTryToRun);
-    console.log("tryToRun", tryToRun);
+    console.log("prevProps", prevProps);
+    console.log("props", this.props);
+    console.log("prevState", prevState);
+    console.log("state", this.state);
     console.groupEnd();
 
     if (
-      tryToRun === tryToRunVals["s"] &&
-      prevTryToRun !== tryToRunVals["s"] &&
+      tryToRun === runVals["s"] &&
+      prevTryToRun !== runVals["s"] &&
       this.canStart()
     ) {
       this.start();
     } else if (
-      tryToRun === tryToRunVals["p"] &&
-      prevTryToRun !== tryToRunVals["p"] &&
+      tryToRun === runVals["p"] &&
+      prevTryToRun !== runVals["p"] &&
       this.canPause()
     ) {
       this.pause();
@@ -72,14 +73,13 @@ class Timer extends Component {
   // }
 
   canStart() {
-    console.log("canStart");
     const { isRunning } = this.props;
     const secsToTick = this.transformTimeToSecs();
+
     return !isRunning && secsToTick && secsToTick > 0;
   }
 
   canPause() {
-    console.log("canPause");
     const { isRunning } = this.props;
     const secsToTick = this.transformTimeToSecs();
     return isRunning && this.timerId && secsToTick && secsToTick > 0;
@@ -87,6 +87,11 @@ class Timer extends Component {
 
   start() {
     console.log("start");
+    if (!this.initTime) {
+      const { hours, minutes, seconds } = this.state;
+      this.initTime = { hours, minutes, seconds };
+    }
+
     this.timerId = setInterval(() => this.handleTick(), 1000);
     this.props.onStart();
   }
@@ -99,7 +104,32 @@ class Timer extends Component {
     this.props.onPause();
   }
 
+  finish() {
+    console.log("finish");
+    if (this.timerId) {
+      clearInterval(this.timerId);
+    }
+
+    this.props.onFinish();
+
+    this.repeatId = setInterval(() => this.prepareToRepeat(), 1000);
+  }
+
+  prepareToRepeat() {
+    console.log("prepareToRepeat");
+    if (this.initTime) {
+      const { hours, minutes, seconds } = this.initTime;
+      this.initTime = null;
+      this.setState({ hours, minutes, seconds });
+      if (this.repeatId) {
+        clearInterval(this.repeatId);
+      }
+    }
+    //this.props.onRepeatPrepared();
+  }
+
   handleTimeChange(hours, minutes, seconds) {
+    console.log("handleTimeChange");
     this.setState({
       hours,
       minutes,
@@ -120,22 +150,20 @@ class Timer extends Component {
     let hours = Math.floor(minutes / 60);
     minutes = minutes % 60;
 
-    console.log({ hours, minutes, seconds });
-
     return { hours, minutes, seconds };
   }
 
   handleTick() {
+    console.log("handleTick");
     let secsToTick = this.transformTimeToSecs() - 1;
     let { isRunning } = this.props;
     const { hours, minutes, seconds } = this.transformSecsToTime(secsToTick);
-    if (secsToTick < 1 && isRunning) {
-      clearInterval(this.timerId);
-      this.pause();
-      //this.showNotification();
-    }
 
     this.setState({ hours, minutes, seconds });
+
+    if (secsToTick <= 0 && isRunning) {
+      this.finish();
+    }
   }
 
   render() {
@@ -154,4 +182,4 @@ class Timer extends Component {
 }
 
 export default Timer;
-export { tryToRunVals };
+export { runVals };

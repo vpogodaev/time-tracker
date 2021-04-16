@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import { Button } from "react-bootstrap";
-import Clock from "../clock";
 import Timer, { tryToRun } from "../timer";
 
 import "./styles.scss";
@@ -13,18 +12,24 @@ class ContinuousTimer extends Component {
     this.handlePauseBtn = this.handlePauseBtn.bind(this);
     this.handleStartTimer = this.handleStartTimer.bind(this);
     this.handlePauseTimer = this.handlePauseTimer.bind(this);
+    this.handleFinishTimer = this.handleFinishTimer.bind(this);
+    this.handleTimerRepeatPrepare = this.handleTimerRepeatPrepare.bind(this);
+    
+    this.handleStartRepeat = this.handleStartRepeat.bind(this);
+    this.handleFinishRepeat = this.handleFinishRepeat.bind(this);
 
     //console.log(tryToRun);
     this.state = {
       isTimerRunning: false,
       tryToRunTimer: tryToRun["d"],
+      isRepeatRunning: false,
+      tryToRunRepeat: tryToRun["d"],
     };
   }
 
   handleStartBtn() {
     console.log("handleStartBtn");
     const { isTimerRunning } = this.state;
-    console.log("isTimerRunning", isTimerRunning);
     if (isTimerRunning) {
       return;
     }
@@ -50,6 +55,37 @@ class ContinuousTimer extends Component {
     this.setState({ isTimerRunning: false, tryToRunTimer: tryToRun["d"] });
   }
 
+  handleFinishTimer() {
+    console.log("handleFinishTimer");
+    this.setState({
+      isTimerRunning: false,
+      tryToRunTimer: tryToRun["r"],
+      // isRepeatRunning: false,
+      // tryToRunRepeat: tryToRun["s"],
+    });
+  }
+
+  handleTimerRepeatPrepare() {
+    console.log("handleTimerRepeatPrepare");
+    this.setState({
+      isTimerRunning: false,
+      tryToRunTimer: tryToRun["d"],
+    });
+  }
+
+
+  handleStartRepeat() {
+    console.log("handleStartRepeat");
+    this.setState({ isRepeatRunning: true, tryToRunRepeat: tryToRun["d"] });
+  }
+
+  handleFinishRepeat() {
+    console.log("handleFinishRepeat");
+    this.setState({ isRepeatRunning: false, tryToRunRepeat: tryToRun["d"] });
+  }
+
+  
+
   render() {
     return (
       <>
@@ -59,7 +95,14 @@ class ContinuousTimer extends Component {
             tryToRun={this.state.tryToRunTimer}
             onStart={this.handleStartTimer}
             onPause={this.handlePauseTimer}
+            onFinish={this.handleFinishTimer}
           />
+          {/* <Timer 
+            isRunning={this.state.isRepeatRunning}
+            tryToRun={this.state.tryToRunRepeat}
+            onStart={this.handleStartRepeat}
+            onFinish={this.handleStartRepeat}
+          /> */}
           <div className="buttons-wrapper">
             <Button onClick={this.handlePauseBtn}>Pause</Button>
             <Button onClick={this.handleStartBtn}>Start</Button>
