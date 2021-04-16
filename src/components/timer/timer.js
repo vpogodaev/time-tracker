@@ -1,30 +1,59 @@
 import React, { Component } from "react";
-import { Button } from "react-bootstrap";
 import Clock from "../clock";
 
 import "./styles.scss";
+
+const tryToRunVals = {
+  d: "default",
+  s: "start",
+  p: "pause",
+};
 
 class Timer extends Component {
   constructor(props) {
     super(props);
 
-    this.handleStart = this.handleStart.bind(this);
-    this.handlePause = this.handlePause.bind(this);
+    // this.handleStart = this.handleStart.bind(this);
+    // this.handlePause = this.handlePause.bind(this);
     this.handleTimeChange = this.handleTimeChange.bind(this);
 
     this.state = {
       hours: 0,
       minutes: 0,
       seconds: 0,
-      running: false,
+      //isRunning: false,
     };
   }
 
-  componentDidMount() {
-    if (!("Notification" in window)) {
-      console.log("notifications disabled");
-    } else {
-      Notification.requestPermission();
+  // componentDidMount() {
+  //   if (!("Notification" in window)) {
+  //     console.log("notifications disabled");
+  //   } else {
+  //     Notification.requestPermission();
+  //   }
+  // }
+
+  componentDidUpdate(prevProps) {
+    const prevTryToRun = prevProps.tryToRun;
+    const { tryToRun } = this.props;
+
+    console.group("componentDidUpdate");
+    console.log("prevTryToRun", prevTryToRun);
+    console.log("tryToRun", tryToRun);
+    console.groupEnd();
+
+    if (
+      tryToRun === tryToRunVals["s"] &&
+      prevTryToRun !== tryToRunVals["s"] &&
+      this.canStart()
+    ) {
+      this.start();
+    } else if (
+      tryToRun === tryToRunVals["p"] &&
+      prevTryToRun !== tryToRunVals["p"] &&
+      this.canPause()
+    ) {
+      this.pause();
     }
   }
 
@@ -34,31 +63,40 @@ class Timer extends Component {
     }
   }
 
-  showNotification() {
-    const options = {
-      body: "Звенит таймер",
-      dir: "ltr",
-    };
-    new Notification("Таймер", options);
-  }
+  // showNotification() {
+  //   const options = {
+  //     body: "Звенит таймер",
+  //     dir: "ltr",
+  //   };
+  //   new Notification("Таймер", options);
+  // }
 
-  handleStart() {
-    const running = this.state.running;
+  canStart() {
+    console.log("canStart");
+    const { isRunning } = this.props;
     const secsToTick = this.transformTimeToSecs();
-    if (running || !secsToTick || secsToTick < 1) {
-      return;
-    }
-
-    this.setState({ running: true });
-    this.timerId = setInterval(() => this.handleTick(), 1000);
+    return !isRunning && secsToTick && secsToTick > 0;
   }
 
-  handlePause() {
-    const { running } = this.state;
-    if (this.timerId && running) {
+  canPause() {
+    console.log("canPause");
+    const { isRunning } = this.props;
+    const secsToTick = this.transformTimeToSecs();
+    return isRunning && this.timerId && secsToTick && secsToTick > 0;
+  }
+
+  start() {
+    console.log("start");
+    this.timerId = setInterval(() => this.handleTick(), 1000);
+    this.props.onStart();
+  }
+
+  pause() {
+    console.log("pause");
+    if (this.timerId) {
       clearInterval(this.timerId);
-      this.setState({ running: false });
     }
+    this.props.onPause();
   }
 
   handleTimeChange(hours, minutes, seconds) {
@@ -89,34 +127,31 @@ class Timer extends Component {
 
   handleTick() {
     let secsToTick = this.transformTimeToSecs() - 1;
-    let running = this.state.running;
+    let { isRunning } = this.props;
     const { hours, minutes, seconds } = this.transformSecsToTime(secsToTick);
-    if (secsToTick < 1 && running) {
+    if (secsToTick < 1 && isRunning) {
       clearInterval(this.timerId);
-      running = false;
-      this.showNotification();
+      this.pause();
+      //this.showNotification();
     }
 
-    this.setState({ running, hours, minutes, seconds });
+    this.setState({ hours, minutes, seconds });
   }
 
   render() {
     return (
       <div className="timer">
         <Clock
-          readOnly={this.state.running}
+          readOnly={this.props.isRunning}
           hours={this.state.hours}
           minutes={this.state.minutes}
           seconds={this.state.seconds}
           onTimeChange={this.handleTimeChange}
         />
-        <div className="buttons-wrapper">
-          <Button onClick={this.handlePause}>Pause</Button>
-          <Button onClick={this.handleStart}>Start</Button>
-        </div>
       </div>
     );
   }
 }
 
 export default Timer;
+export { tryToRunVals };

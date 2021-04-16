@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import { Col, Container, Row } from "react-bootstrap";
 
-import Timer from "../timer";
+import ContinuousTimer from "../continuous-timer";
 
 import "./styles.scss";
 
@@ -11,7 +11,7 @@ class App extends Component {
       <Container>
         <Row>
           <Col>
-            <Timer />
+            <ContinuousTimer />
           </Col>
         </Row>
       </Container>

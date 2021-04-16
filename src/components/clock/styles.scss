@@ -1,0 +1,12 @@
+.clock {
+  display: block;
+  text-align: center;
+  .time {
+    display: inline-block;
+    font-size: 30px;
+  }
+  .dots {
+    display: inline-block;
+    font-size: 30px;
+  }
+}

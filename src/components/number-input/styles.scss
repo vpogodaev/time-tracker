@@ -1,0 +1,11 @@
+.input-time {
+  border: none;
+  font-size: 30px;
+  width: 40px;
+
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+}
