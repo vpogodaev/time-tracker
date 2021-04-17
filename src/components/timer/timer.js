@@ -3,7 +3,7 @@ import Clock from "../clock";
 import {
   transformSecsToTime,
   transformTimeToSecs,
-} from "../../models/timeTransform";
+} from "../../utils/timeTransform";
 
 import "./styles.scss";
 import { Button } from "react-bootstrap";

@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import {
   transformSecsToTime,
   transformTimeToSecs,
-} from "../../models/timeTransform";
+} from "../../utils/timeTransform";
 import Clock from "../clock";
 
 class Watch extends Component {
