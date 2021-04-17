@@ -39,7 +39,7 @@ class Clock extends Component {
       } else if (value > 59 && minutes <= 59) {
         seconds = 0;
         addMinute(minutes + 1);
-      } else if (value < 0 && minutes >= 0) {
+      } else if (value < 0 && (minutes > 0 || hours > 0)) {
         seconds = 59;
         addMinute(minutes - 1);
       }

@@ -1,3 +1,3 @@
-import Timer, { runVals as tryToRun} from "./timer";
+import Timer, { timerStatus } from "./timer";
 export default Timer;
-export { tryToRun };
+export { timerStatus };
