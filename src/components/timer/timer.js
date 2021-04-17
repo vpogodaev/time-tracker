@@ -50,7 +50,7 @@ class Timer extends Component {
     }
   }
 
-  // event listeners
+  // event handlers
   handleTimeChange(hours, minutes, seconds) {
     this.setState({
       hours,
