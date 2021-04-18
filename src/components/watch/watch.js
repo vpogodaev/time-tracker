@@ -1,101 +1,54 @@
-import React, { Component } from "react";
+import React, { useEffect, useState } from "react";
+import useInterval from "../../hooks/useInterval";
 import {
   transformSecsToTime,
   transformTimeToSecs,
 } from "../../utils/timeTransform";
 import Clock from "../clock";
+import { watchStatuses as statuses } from "../../constants";
+import usePrevious from "../../hooks/usePrevious";
 
-class Watch extends Component {
-  constructor(props) {
-    super(props);
+export default function Watch(props) {
+  const [hours, setHours] = useState(props.hours ? props.hours : 0);
+  const [minutes, setMinutes] = useState(props.minutes ? props.minutes : 0);
+  const [seconds, setSeconds] = useState(props.seconds ? props.seconds : 0);
 
-    const hours = props.hours ? props.hours : 0;
-    const minutes = props.minutes ? props.minutes : 0;
-    const seconds = props.seconds ? props.seconds : 0;
-
-    this.state = {
-      hours,
-      minutes,
-      seconds,
-    };
-  }
-
-  // lifecycle
-  componentDidMount() {
-    if (this.props.isRunning) {
-      this.watchId = setInterval(() => this.handleTick(), 1000);
+  const prevStatus = usePrevious(props.status);
+  // !
+  useEffect(() => {
+    if (prevStatus !== props.status && props.status === statuses.s) {
+      setHours(props.hours ? props.hours : 0);
+      setMinutes(props.minutes ? props.minutes : 0);
+      setSeconds(props.seconds ? props.seconds : 0);
     }
-  }
+  });
 
-  componentDidUpdate(prevProps) {
-    if (this.props.isRunning && !prevProps.isRunning && !this.watchId) {
-      this.watchId = setInterval(() => this.handleTick(), 1000);
-    } else if (!this.props.isRunning && prevProps.isRunning && this.watchId) {
-      const hours = this.props.hours ? this.props.hours : 0;
-      const minutes = this.props.minutes ? this.props.minutes : 0;
-      const seconds = this.props.seconds ? this.props.seconds : 0;
-      this.setState({
-        hours,
-        minutes,
-        seconds,
-      });
-      clearInterval(this.watchId);
-    }
-  }
+  useInterval(() => handleTick(), props.status === statuses.r ? 1000 : null);
 
-  componentWillUnmount() {
-    if (this.watchId) {
-      clearInterval(this.watchId);
-    }
-  }
+  const handleTick = () => {
+    const secs = transformTimeToSecs(hours, minutes, seconds);
+    const time = transformSecsToTime(secs + 1);
 
-  // event handlers
-  handleTick() {
-    let secs = this.callTransformTimeToSecs() + 1;
-    const { hours, minutes, seconds } = transformSecsToTime(secs);
+    setHours(time.hours);
+    setMinutes(time.minutes);
+    setSeconds(time.seconds);
 
-    this.setState({ hours, minutes, seconds });
-
-    if (this.props.notifyAfterSecs) {
-      if (secs % this.props.notifyAfterSecs === 0) {
-        this.showNotification();
+    if (props.notifyAfterSecs) {
+      if (secs > 0 && secs % props.notifyAfterSecs === 0) {
+        showNotification();
       }
     }
-  }
+  };
 
-  handleTimeChange(hours, minutes, seconds) {
-    this.setState({
-      hours,
-      minutes,
-      seconds,
-    });
-  }
-
-  // methods
-  callTransformTimeToSecs() {
-    const { hours, minutes, seconds } = this.state;
-    return transformTimeToSecs(hours, minutes, seconds);
-  }
-
-  showNotification() {
-    const { hours, minutes, seconds } = this.state;
+  const showNotification = () => {
     const options = {
       body: `Таймер прозвенел ${hours}ч. ${minutes}м. ${seconds}с. назад`,
       dir: "ltr",
     };
     new Notification("Таймер", options);
-  }
+  };
 
-  render() {
-    return (
-      <Clock
-        readOnly={true}
-        hours={this.state.hours}
-        minutes={this.state.minutes}
-        seconds={this.state.seconds}
-      />
-    );
-  }
+  return (
+    <Clock readOnly={true} hours={hours} minutes={minutes} seconds={seconds} />
+  );
 }
-
-export default Watch;

@@ -1,232 +1,103 @@
-import React, { Component } from "react";
+import React, { useRef, useState } from "react";
 import { Button } from "react-bootstrap";
+import useInterval from "../../hooks/useInterval";
+import useTimeout from "../../hooks/useTimeout";
 import {
   transformSecsToTime,
   transformTimeToSecs,
 } from "../../utils/timeTransform";
 import Clock from "../clock";
+import ClockButtons from "../clock-buttons/clock-buttons";
 import Watch from "../watch/watch";
+import { timerStatuses as statuses, watchStatuses } from "../../constants";
 
 import "./styles.scss";
 
-const statuses = {
-  s: "stopped",
-  r: "running",
-  p: "paused",
-  o: "over",
-  f: "finished",
-};
-class ContinuousTimer extends Component {
-  constructor(props) {
-    super(props);
+export default function ContinuousTimer(props) {
+  const [hours, setHours] = useState(props.hours ? props.hours : 0);
+  const [minutes, setMinutes] = useState(props.minutes ? props.minutes : 0);
+  const [seconds, setSeconds] = useState(props.seconds ? props.seconds : 0);
+  const [status, setStatus] = useState(statuses["s"]);
+  const [hoursOver, setHoursOver] = useState(0);
+  const [minutesOver, setMinutesOver] = useState(0);
+  const [secondsOver, setSecondsOver] = useState(0);
+  const [needRepeat, setNeedRepeat] = useState(false);
 
-    this.handleTimeChange = this.handleTimeChange.bind(this);
-    this.handleOverTimeChange = this.handleOverTimeChange.bind(this);
-    this.handleStartBtn = this.handleStartBtn.bind(this);
-    this.handlePauseBtn = this.handlePauseBtn.bind(this);
-    this.handleStopBtn = this.handleStopBtn.bind(this);
+  const initTimeRef = useRef();
 
-    const hours = props.hours ? props.hours : 0;
-    const minutes = props.minutes ? props.minutes : 0;
-    const seconds = props.seconds ? props.seconds : 0;
+  const isRunning = status === statuses["r"];
+  useInterval(() => tick(), isRunning ? 1000 : null);
 
-    this.state = {
-      hours,
-      minutes,
-      seconds,
-      status: statuses["s"],
-      hoursOver: 0,
-      minutesOver: 0,
-      secondsOver: 0,
-    };
-  }
+  function tick() {
+    let secsToTick = transformTimeToSecs(hours, minutes, seconds) - 1;
+    const time = transformSecsToTime(secsToTick);
+    setHours(time.hours);
+    setMinutes(time.minutes);
+    setSeconds(time.seconds);
 
-  // lifecycle
-  componentDidMount() {
-    if (!("Notification" in window)) {
-      console.log("notifications disabled");
-    } else {
-      Notification.requestPermission();
+    if (secsToTick <= 0) {
+      finish();
     }
   }
 
-  componentWillUnmount() {
-    if (this.timerId) {
-      clearInterval(this.timerId);
-    }
+  useTimeout(() => repeatTimeout(), needRepeat ? 300 : null);
+
+  function repeatTimeout() {
+    setHours(initTimeRef.current.hours);
+    setMinutes(initTimeRef.current.minutes);
+    setSeconds(initTimeRef.current.seconds);
+    setNeedRepeat(false);
   }
 
   // event handlers
-  handleTimeChange(hours, minutes, seconds) {
-    this.setState({
-      hours,
-      minutes,
-      seconds,
-    });
+  function handleTimeChange(_hours, _minutes, _seconds) {
+    setHours(_hours);
+    setMinutes(_minutes);
+    setSeconds(_seconds);
   }
 
-  handleOverTimeChange(hoursOver, minutesOver, secondsOver) {
-    this.setState({
-      hoursOver,
-      minutesOver,
-      secondsOver,
-    });
+  function handleOverTimeChange(_hoursOver, _minutesOver, _secondsOver) {
+    setHoursOver(_hoursOver);
+    setMinutesOver(_minutesOver);
+    setSecondsOver(_secondsOver);
   }
 
-  handleStartBtn() {
-    if (!this.canStart()) {
+  function handleStartBtn() {
+    if (!canStart()) {
       return;
     }
 
-    if (!this.initTime) {
-      const { hours, minutes, seconds } = this.state;
-      this.initTime = { hours, minutes, seconds };
+    if (!initTimeRef.current) {
+      initTimeRef.current = { hours, minutes, seconds };
     }
 
-    this.setState({ status: statuses["r"] });
-    this.timerId = setInterval(() => this.handleTick(), 1000);
+    setStatus(statuses["r"]);
   }
 
-  handlePauseBtn() {
-    if (this.state.status !== statuses["r"]) {
+  function handlePauseBtn() {
+    if (status !== statuses["r"]) {
       return;
     }
-    if (this.timerId) {
-      clearInterval(this.timerId);
-      this.setState({ status: statuses["p"] });
-    }
+    setStatus(statuses["p"]);
   }
 
-  handleStopBtn() {
-    if (
-      this.state.status !== statuses["p"] &&
-      this.state.status !== statuses["o"]
-    ) {
-      return;
-    }
-    if (this.timerId) {
-      clearInterval(this.timerId);
-
-      this.setState({
-        hours: 0,
-        minutes: 0,
-        seconds: 0,
-        status: statuses["s"],
-      });
-
-      this.repeatId = setTimeout(() => {
-        this.setRepeat();
-      }, 300);
-    }
+  function handleStopBtn() {
+    setHours(0);
+    setMinutes(0);
+    setSeconds(0);
+    setStatus(statuses["s"]);
+    setNeedRepeat(true);
   }
 
-  handleTick() {
-    //console.log("handleTick", this);
-    let secsToTick = this.callTransformTimeToSecs() - 1;
-    const { hours, minutes, seconds } = transformSecsToTime(secsToTick);
+  function canStart() {
+    const secsToTick = transformTimeToSecs(hours, minutes, seconds);
 
-    this.setState({ hours, minutes, seconds });
-
-    if (secsToTick <= 0) {
-      this.finish();
-    }
+    return status !== statuses["r"] && secsToTick && secsToTick > 0;
   }
 
-  // methods
-  callTransformTimeToSecs() {
-    const { hours, minutes, seconds } = this.state;
-    return transformTimeToSecs(hours, minutes, seconds);
-  }
-
-  canStart() {
-    const secsToTick = this.callTransformTimeToSecs();
-
-    return this.state.status !== statuses["r"] && secsToTick && secsToTick > 0;
-  }
-
-  finish() {
-    if (this.timerId) {
-      clearInterval(this.timerId);
-    }
-
-    this.showNotification();
-
-    const notifyAfterSecs = transformTimeToSecs(
-      this.state.hoursOver,
-      this.state.minutesOver,
-      this.state.secondsOver
-    );
-
-    if (!notifyAfterSecs) {
-      this.setState({ status: statuses["f"] });
-
-      this.repeatId = setTimeout(() => {
-        this.setRepeat();
-      }, 300);
-    } else {
-      this.setState({ status: statuses["o"] });
-    }
-  }
-
-  setRepeat() {
-    if (this.initTime) {
-      const { hours, minutes, seconds } = this.initTime;
-      this.initTime = null;
-
-      this.setState({
-        hours,
-        minutes,
-        seconds,
-      });
-    }
-  }
-
-  showNotification() {
-    const options = {
-      body: "Звенит таймер",
-      dir: "ltr",
-    };
-    new Notification("Таймер", options);
-  }
-
-  render() {
-    const { status, hours, minutes, seconds } = this.state;
-    const { hoursOver, minutesOver, secondsOver } = this.state;
-    const readOnly = status !== statuses["s"] && status !== statuses["f"];
-
-    // !
-    const buttons = () => {
-      switch (status) {
-        case statuses["s"]:
-        case statuses["f"]:
-          return (
-            <div className="buttons-wrapper">
-              <Button onClick={this.handleStartBtn}>Start</Button>
-            </div>
-          );
-        case statuses["r"]:
-          return (
-            <div className="buttons-wrapper">
-              <Button onClick={this.handlePauseBtn}>Pause</Button>
-            </div>
-          );
-        case statuses["p"]:
-          return (
-            <div className="buttons-wrapper">
-              <Button onClick={this.handleStartBtn}>Start</Button>
-              <Button onClick={this.handleStopBtn}>Stop</Button>
-            </div>
-          );
-        case statuses["o"]:
-          return (
-            <div className="buttons-wrapper">
-              <Button onClick={this.handleStopBtn}>Stop</Button>
-            </div>
-          );
-        default:
-          return <div className="buttons-wrapper"></div>;
-      }
-    };
+  function finish() {
+    setStatus(statuses["f"]);
+    showNotification();
 
     const notifyAfterSecs = transformTimeToSecs(
       hoursOver,
@@ -234,34 +105,66 @@ class ContinuousTimer extends Component {
       secondsOver
     );
 
-    return (
-      <div className="timer">
-        Таймер:
-        <Clock
-          readOnly={readOnly}
-          hours={hours}
-          minutes={minutes}
-          seconds={seconds}
-          onTimeChange={this.handleTimeChange}
-        />
-        <p>Просроченное время</p>
-        Оповещать через:
-        <Clock
-          readOnly={readOnly}
-          hours={hoursOver}
-          minutes={minutesOver}
-          seconds={secondsOver}
-          onTimeChange={this.handleOverTimeChange}
-        />
-        Текущее время просрочки:
-        <Watch
-          isRunning={status === statuses["o"] && notifyAfterSecs}
-          notifyAfterSecs={notifyAfterSecs}
-        />
-        {buttons()}
-      </div>
-    );
-  }
-}
+    if (!notifyAfterSecs) {
+      setStatus(statuses["f"]);
 
-export default ContinuousTimer;
+      setNeedRepeat(true);
+    } else {
+      setStatus(statuses["o"]);
+    }
+  }
+
+  function showNotification() {
+    const options = {
+      body: "Звенит таймер",
+      dir: "ltr",
+    };
+    new Notification("Таймер", options);
+  }
+
+  const readOnly = status !== statuses["s"] && status !== statuses["f"];
+  // !
+  const notifyAfterSecs = transformTimeToSecs(
+    hoursOver,
+    minutesOver,
+    secondsOver
+  );
+
+  const watchStatus =
+    status === statuses["o"] && notifyAfterSecs
+      ? watchStatuses.r
+      : watchStatuses.s;
+
+  return (
+    <div className="timer">
+      Таймер:
+      <Clock
+        readOnly={readOnly}
+        hours={hours}
+        minutes={minutes}
+        seconds={seconds}
+        onTimeChange={handleTimeChange}
+      />
+      <p>Просроченное время</p>
+      Оповещать через:
+      <Clock
+        readOnly={readOnly}
+        hours={hoursOver}
+        minutes={minutesOver}
+        seconds={secondsOver}
+        onTimeChange={handleOverTimeChange}
+      />
+      Текущее время просрочки:
+      <Watch
+        status={watchStatus}
+        notifyAfterSecs={notifyAfterSecs}
+      />
+      <ClockButtons
+        onStartBtn={handleStartBtn}
+        onPauseBtn={handlePauseBtn}
+        onStopBtn={handleStopBtn}
+        status={status}
+      />
+    </div>
+  );
+}
