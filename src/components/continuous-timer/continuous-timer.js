@@ -1,5 +1,4 @@
 import React, { useRef, useState } from "react";
-import { Button } from "react-bootstrap";
 import useInterval from "../../hooks/useInterval";
 import useTimeout from "../../hooks/useTimeout";
 import {
@@ -123,13 +122,11 @@ export default function ContinuousTimer(props) {
   }
 
   const readOnly = status !== statuses["s"] && status !== statuses["f"];
-  // !
   const notifyAfterSecs = transformTimeToSecs(
     hoursOver,
     minutesOver,
     secondsOver
   );
-
   const watchStatus =
     status === statuses["o"] && notifyAfterSecs
       ? watchStatuses.r
