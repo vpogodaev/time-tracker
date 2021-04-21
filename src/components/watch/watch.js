@@ -6,22 +6,19 @@ import {
 } from "../../utils/timeTransform";
 import Clock from "../clock";
 import { watchStatuses as statuses } from "../../constants";
-import usePrevious from "../../hooks/usePrevious";
 
 export default function Watch(props) {
   const [hours, setHours] = useState(props.hours ? props.hours : 0);
   const [minutes, setMinutes] = useState(props.minutes ? props.minutes : 0);
   const [seconds, setSeconds] = useState(props.seconds ? props.seconds : 0);
 
-  const prevStatus = usePrevious(props.status);
-  // !
   useEffect(() => {
-    if (prevStatus !== props.status && props.status === statuses.s) {
+    if (props.status === statuses.s) {
       setHours(props.hours ? props.hours : 0);
       setMinutes(props.minutes ? props.minutes : 0);
       setSeconds(props.seconds ? props.seconds : 0);
     }
-  });
+  }, [props.hours, props.minutes, props.seconds, props.status]);
 
   useInterval(() => handleTick(), props.status === statuses.r ? 1000 : null);
 
