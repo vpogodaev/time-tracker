@@ -9,6 +9,8 @@ import Clock from "../clock";
 import Watch from "../watch";
 import { watchStatuses } from "../../constants";
 
+import "./styles.scss";
+
 const pomodoroStatuses = {
   stopped: 0,
   work_running: 1,
@@ -21,323 +23,207 @@ const pomodoroStatuses = {
   relax_over_running: 8,
 };
 
+const PomodoroButtons = ({
+  status,
+  onStartWorkBtn,
+  onPauseWorkBtn,
+  onStartRelaxBtn,
+  onPauseRelaxBtn,
+  onStopBtn,
+}) => {
+  const getButton = (label, key, onClick, disabled = false) => {
+    return (
+      <Button key={key} onClick={onClick} disabled={disabled}>
+        {label}
+      </Button>
+    );
+  };
+
+  const stop = (disabled) => getButton("Stop", 0, onStopBtn, disabled);
+  const startWork = (disabled) =>
+    getButton("Start work", 1, onStartWorkBtn, disabled);
+  const pauseWork = (disabled) =>
+    getButton("Pause work", 2, onPauseWorkBtn, disabled);
+  const stopWork = (disabled) =>
+    getButton("Stop work", 3, onStartRelaxBtn, disabled);
+  const startRelax = (disabled) =>
+    getButton("Start relax", 4, onStartRelaxBtn, disabled);
+  const pauseRelax = (disabled) =>
+    getButton("Pause relax", 5, onPauseRelaxBtn, disabled);
+  const stopRelax = (disabled) =>
+    getButton("Stop relax", 6, onStartWorkBtn, disabled);
+
+  const buttonFactory = {
+    // stopped
+    0: [startWork(), pauseWork(true), stop(true)],
+    // work_running
+    1: [startWork(true), pauseWork(), stop()],
+    // work_paused
+    2: [startWork(), stopWork(), stop()],
+    // work_stoped
+    3: [startRelax(), pauseRelax(true), stop()],
+    // work_over_running
+    4: [startRelax(), pauseRelax(true), stop()],
+    // relax_running
+    5: [startRelax(true), pauseRelax(), stop()],
+    // relax_paused
+    6: [startRelax(), stopRelax(), stop()],
+    // relax_stoped
+    7: [startWork(), pauseWork(true), stop()],
+    // relax_over_running
+    8: [startWork(), pauseWork(true), stop()],
+  };
+
+  return <div className="buttons-wrapper">{buttonFactory[status]}</div>;
+};
+
 const PomodoroTimer = () => {
   const [workTimer, setWorkTimer] = useState({
-    hours: 0,
-    minutes: 0,
     seconds: 0,
-    initHours: 0,
-    initMinutes: 0,
-    initSeconds: 0,
+    initSeconds: 10,
+    count: 0,
   });
   const [relaxTimer, setRelaxTimer] = useState({
-    hours: 0,
-    minutes: 0,
     seconds: 0,
-    initHours: 0,
-    initMinutes: 0,
-    initSeconds: 0,
+    initSeconds: 10,
+    count: 0,
+  });
+  const [bigRelaxTimer, setBigRelaxTimer] = useState({
+    needed: true,
+    count: 0,
+    period: 2,
+    seconds: 0,
+    initSeconds: 15,
   });
   const [overTime, setOverTime] = useState({
-    hours: 0,
-    minutes: 0,
     seconds: 0,
+    notifyInSec: 5,
   });
   const [status, setStatus] = useState(pomodoroStatuses.stopped);
+  const [timerName, setTimerName] = useState("Timer");
 
-  const tick = (timer, setTimer, finish) => {
-    const { hours, minutes, seconds } = timer;
-    let secsToTick = transformTimeToSecs(hours, minutes, seconds) - 1;
-    const time = transformSecsToTime(secsToTick);
-
-    console.log(workTimer);
+  const resetToDefaultTime = (timer, setTimer) => {
+    const { initSeconds } = timer;
     setTimer((prev) => ({
       ...prev,
-      hours: time.hours,
-      minutes: time.minutes,
-      seconds: time.seconds,
-    }));
-    console.log(workTimer);
-
-    if (secsToTick <= 0) {
-      finish();
-    }
-  };
-
-  const canStartTimer = (timer) => {
-    const { hours, minutes, seconds } = timer;
-    return transformTimeToSecs(hours, minutes, seconds) > 0;
-  };
-
-  const trySetTimeFromInit = (timer, setTimer) => {
-    const { initHours, initMinutes, initSeconds } = timer;
-    if (!initHours && !initMinutes && !initSeconds) {
-      return false;
-    }
-
-    setTimer((prev) => ({
-      ...prev,
-      hours: initHours,
-      minutes: initMinutes,
       seconds: initSeconds,
     }));
-
-    console.log(timer);
-    return true;
   };
+  useEffect(() => {
+    if (status === pomodoroStatuses.stopped) {
+      resetToDefaultTime(workTimer, setWorkTimer);
+      resetToDefaultTime(relaxTimer, setRelaxTimer);
+      resetToDefaultTime(bigRelaxTimer, setBigRelaxTimer);
+    }
+    // необходимо следить только за статусом
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status]);
 
-  const startWorkTimer = () => {
-    console.log("startWorkTimer");
-    if (!canStartTimer(workTimer)) {
-      if (!trySetTimeFromInit(workTimer, setWorkTimer)) {
-        return;
-      }
+  const tick = (timer, setTimer) => {
+    const { seconds } = timer;
+    if (seconds <= 0) {
+      return true;
     }
 
-    const {
-      hours,
-      minutes,
-      seconds,
-      initHours,
-      initMinutes,
-      initSeconds,
-    } = workTimer;
-
-    if (
-      (hours || seconds || minutes) &&
-      !initHours &&
-      !initMinutes &&
-      !initSeconds
-    ) {
-      setWorkTimer((prev) => ({
-        ...prev,
-        initHours: hours,
-        initMinutes: minutes,
-        initSeconds: seconds,
-      }));
+    const newSeconds = seconds - 1;
+    setTimer((prev) => ({
+      ...prev,
+      seconds: newSeconds,
+    }));
+    if (newSeconds <= 0) {
+      return true;
     }
-    setStatus(pomodoroStatuses.work_running);
+    return false;
   };
-
   // work tick
   useInterval(
     () => {
-      const workFinish = () => {
+      if (tick(workTimer, setWorkTimer)) {
+        setWorkTimer((prev) => ({
+          ...prev,
+          count: prev.count + 1,
+        }));
         setStatus(pomodoroStatuses.work_stopped);
-        trySetTimeFromInit(workTimer, setWorkTimer);
-      };
-      tick(workTimer, setWorkTimer, workFinish);
+      }
     },
     status === pomodoroStatuses.work_running ? 1000 : null
   );
-
-  const startRelaxTimer = () => {
-    console.log("startRelaxTimer");
-    if (!canStartTimer(relaxTimer)) {
-      if (!trySetTimeFromInit(relaxTimer, setRelaxTimer)) {
-        return;
-      }
-    }
-
-    const {
-      hours,
-      minutes,
-      seconds,
-      initHours,
-      initMinutes,
-      initSeconds,
-    } = relaxTimer;
-
-    if (
-      (hours || seconds || minutes) &&
-      !initHours &&
-      !initMinutes &&
-      !initSeconds
-    ) {
-      setRelaxTimer((prev) => ({
-        ...prev,
-        initHours: hours,
-        initMinutes: minutes,
-        initSeconds: seconds,
-      }));
-    }
-    setStatus(pomodoroStatuses.relax_running);
-  };
-
   // relax tick
   useInterval(
     () => {
-      const relaxFinish = () => {
+      if (tick(relaxTimer, setRelaxTimer)) {
+        setRelaxTimer((prev) => ({
+          ...prev,
+          count: prev.count + 1,
+        }));
         setStatus(pomodoroStatuses.relax_stopped);
-        trySetTimeFromInit(relaxTimer, setRelaxTimer);
-      };
-      tick(relaxTimer, setRelaxTimer, relaxFinish);
+      }
     },
     status === pomodoroStatuses.relax_running ? 1000 : null
   );
-
-  const needOverTimer = () => {
-    const { hours, minutes, seconds } = overTime;
-    return transformTimeToSecs(hours, minutes, seconds) > 0;
-  };
-
-  const needRelaxTimer = () => {
-    const { hours, minutes, seconds } = relaxTimer;
-    return transformTimeToSecs(hours, minutes, seconds) > 0;
-  };
-
-  useEffect(() => {
-    console.log(status);
-    if (status === pomodoroStatuses.work_stopped) {
-      if (needOverTimer()) {
-        setStatus(pomodoroStatuses.work_over_running);
-      } else if (needRelaxTimer()) {
-        startRelaxTimer();
-      } else {
-        startWorkTimer();
+  // big relax tick
+  useInterval(
+    () => {
+      if (tick(bigRelaxTimer, setBigRelaxTimer)) {
+        setBigRelaxTimer((prev) => ({
+          ...prev,
+          count: prev.count + 1,
+        }));
+        setStatus(pomodoroStatuses.relax_stopped);
       }
-    } else if (status === pomodoroStatuses.relax_stopped) {
-      if (needOverTimer()) {
-        setStatus(pomodoroStatuses.relax_over_running);
-      } else {
-        startWorkTimer();
-      }
-    }
-  }, [status]);
+    },
+    status === pomodoroStatuses.relax_running &&
+      workTimer.count % bigRelaxTimer.period === 0
+      ? 1000
+      : null
+  );
 
-  const clearInitTime = (setTime) => {
-    setTime((prev) => ({
-      ...prev,
-      initHours: 0,
-      initMinutes: 0,
-      initSeconds: 0,
-    }));
+  const onStartWorkBtn = () => {
+    setStatus(pomodoroStatuses.work_running);
   };
-
-  const stop = () => {
-    trySetTimeFromInit(workTimer, setWorkTimer);
-    trySetTimeFromInit(relaxTimer, setRelaxTimer);
-    clearInitTime(setWorkTimer);
-    clearInitTime(setRelaxTimer);
+  const onPauseWorkBtn = () => {
+    setStatus(pomodoroStatuses.work_paused);
+  };
+  const onStartRelaxBtn = () => {
+    setStatus(pomodoroStatuses.relax_running);
+  };
+  const onPauseRelaxBtn = () => {
+    setStatus(pomodoroStatuses.relax_paused);
+  };
+  const onStopBtn = () => {
     setStatus(pomodoroStatuses.stopped);
   };
 
-  const handleStartWorkTimerBtn = () => {
-    if (status !== pomodoroStatuses.work_paused) {
-      stop();
-    }
-    startWorkTimer();
+  const statusNameFactory = {
+    0: "stopped",
+    1: "started",
+    2: "paused",
+    3: "finished",
+    4: "over time",
+    5: "relax started",
+    6: "relax paused",
+    7: "relax finished",
+    8: "relax over time",
   };
-
-  const handleStopBtn = () => stop();
-
-  const handlePauseWorkBtn = () => {
-    setStatus(pomodoroStatuses.work_paused);
-  };
-
-  const handleStartRelaxBtn = () => {
-    if (status !== pomodoroStatuses.relax_paused) {
-      stop();
-    }
-    startRelaxTimer();
-  };
-
-  const handlePauseRelaxBtn = () => {
-    setStatus(pomodoroStatuses.relax_paused);
-  };
-
-  const handleTimeChange = (_hours, _minutes, _seconds, setTimer) => {
-    setTimer((prevData) => ({
-      ...prevData,
-      hours: _hours,
-      minutes: _minutes,
-      seconds: _seconds,
-    }));
-  };
-
-  const watchStatus =
-    status === pomodoroStatuses.work_over_running ||
-    status === pomodoroStatuses.relax_over_running
-      ? watchStatuses.r
-      : watchStatuses.s;
-
-  const readOnly = status !== pomodoroStatuses.stopped;
-
   return (
-    <div className="timer">
-      <p>{status}</p>
-      <p>Таймеры:</p>
-      Основной:
-      <Clock
-        readOnly={readOnly}
-        hours={workTimer.hours}
-        minutes={workTimer.minutes}
-        seconds={workTimer.seconds}
-        onTimeChange={(h, m, s) => handleTimeChange(h, m, s, setWorkTimer)}
-      />
-      Отдых:
-      <Clock
-        readOnly={readOnly}
-        hours={relaxTimer.hours}
-        minutes={relaxTimer.minutes}
-        seconds={relaxTimer.seconds}
-        onTimeChange={(h, m, s) => handleTimeChange(h, m, s, setRelaxTimer)}
-      />
-      <p>Просроченное время</p>
-      Оповещать через:
-      <Clock
-        readOnly={readOnly}
-        hours={overTime.hours}
-        minutes={overTime.minutes}
-        seconds={overTime.seconds}
-        onTimeChange={(h, m, s) => handleTimeChange(h, m, s, setOverTime)}
-      />
-      Текущее время просрочки:
-      <Watch
-        status={watchStatus}
-        notifyAfterSecs={transformTimeToSecs(
-          overTime.hours,
-          overTime.minutes,
-          overTime.seconds
-        )}
-      />
-      <div className="buttons-wrapper">
-        <Button
-          disabled={status === pomodoroStatuses.work_running}
-          onClick={handleStartWorkTimerBtn}
-        >
-          Start work timer
-        </Button>
-        <Button
-          disabled={status !== pomodoroStatuses.work_running}
-          onClick={handlePauseWorkBtn}
-        >
-          Pause work timer
-        </Button>
-        <Button
-          disabled={
-            status !== pomodoroStatuses.work_running &&
-            status !== pomodoroStatuses.work_paused &&
-            status !== pomodoroStatuses.work_over_running &&
-            status !== pomodoroStatuses.relax_paused
-          }
-          onClick={handleStartRelaxBtn}
-        >
-          Start relax timer
-        </Button>
-        <Button
-          disabled={status !== pomodoroStatuses.relax_running}
-          onClick={handlePauseRelaxBtn}
-        >
-          Pause relax timer
-        </Button>
-        <Button
-          disabled={status === pomodoroStatuses.stopped}
-          onClick={handleStopBtn}
-        >
-          Stop
-        </Button>
+    <div className="pomodoro-timer">
+      <div className="pomodoro-timer__status">
+        {timerName} {statusNameFactory[status]}
       </div>
+      <Clock
+        readOnly={true}
+        hours={transformSecsToTime(workTimer.seconds).hours}
+        minutes={transformSecsToTime(workTimer.seconds).minutes}
+        seconds={transformSecsToTime(workTimer.seconds).seconds}
+      />
+      <PomodoroButtons
+        status={status}
+        onStartWorkBtn={onStartWorkBtn}
+        onPauseWorkBtn={onPauseWorkBtn}
+        onStartRelaxBtn={onStartRelaxBtn}
+        onPauseRelaxBtn={onPauseRelaxBtn}
+        onStopBtn={onStopBtn}
+      />
     </div>
   );
 };

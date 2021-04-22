@@ -1,0 +1,57 @@
+.pomodoro-timer {
+  padding: 20px;
+  width: 550px;
+  min-height: 170px;
+  background: firebrick;
+  border-radius: 5px;
+  &__status {
+    color: white;
+    font-size: 22px;
+    text-align: center;
+  }
+}
+
+.input-time,
+.dots {
+  background: firebrick;
+  color: white;
+}
+
+.buttons-wrapper {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  column-gap: 10px;
+  padding: 0 50px;
+}
+
+.gear {
+  margin: 20px;
+  width: 100px;
+  height: 100px;
+  background: blue;
+  border-radius: 50%;
+  position: relative;
+  &::before {
+    position: absolute;
+    content: "";
+    z-index: 3;
+    display: block;
+    height: 32px;
+    width: 32px;
+    background: red;
+    border-radius: 50%;
+    left: calc(50% - 16px);
+    top: calc(50% - 16px);
+  }
+  &::after {
+    position: absolute;
+    content: "";
+    z-index: 2;
+    background: green;
+    width: 20px;
+    height: 20px;
+    left: calc(50% - 10px);
+    top: calc(50% - 10px);
+  }
+}
