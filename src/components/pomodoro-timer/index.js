@@ -1,3 +1,2 @@
-import PomodoroTimer, { PomodoroTimerWrapper } from "./pomodoro-timer";
+import PomodoroTimer from "./pomodoro-timer";
 export default PomodoroTimer;
-export { PomodoroTimerWrapper };

@@ -1,12 +1,12 @@
 import React, { useEffect } from "react";
 import { Col, Container, Row } from "react-bootstrap";
 
-import Watch from "../watch";
-import ContinuousTimer from "../continuous-timer";
-import Timer from "../timer/timer";
+// import Watch from "../watch";
+// import ContinuousTimer from "../continuous-timer";
+// import Timer from "../timer/timer";
+import PomodoroTimerWrapper from "../pomodoro-timer-wrapper";
 
 import "./styles.scss";
-import { PomodoroTimerWrapper } from "../pomodoro-timer";
 
 export default function App() {
   useEffect(() => {

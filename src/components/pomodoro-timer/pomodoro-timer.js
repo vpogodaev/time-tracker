@@ -1,13 +1,9 @@
-import { Button, Form } from "react-bootstrap";
 import React, { useEffect, useState } from "react";
+
 import useInterval from "../../hooks/useInterval";
-import {
-  transformSecsToTime,
-  transformTimeToSecs,
-} from "../../utils/timeTransform";
+import { transformSecsToTime } from "../../utils/timeTransform";
 import Clock from "../clock";
-import Watch from "../watch";
-import { watchStatuses } from "../../constants";
+import PomodoroButtons from "../pomodoro-buttons";
 
 import "./styles.scss";
 
@@ -23,196 +19,22 @@ const pomodoroStatuses = {
   relax_over_running: 8,
 };
 
-const Settings = ({ workSettings }) => {
-  const workClock = !workSettings ? null : (
-    <div>
-      <div>Working timer:</div>
-      <Clock
-        readOnly={false}
-        hours={workSettings.hours}
-        minutes={workSettings.minutes}
-        seconds={workSettings.seconds}
-        onTimeChange={workSettings.onTimeChange}
-      />
-      <Form.Check
-        type="switch"
-        label="Needs over"
-        id="workTimerNeedsOver"
-        checked={workSettings.needsOver}
-        onChange={workSettings.onNeedsOverChange}
-      />
-      <Form.Check
-        type="switch"
-        label="Needs stop"
-        id="workTimerNeedsStop"
-        checked={workSettings.needsStop}
-        onChange={workSettings.onNeedsStopChange}
-      />
-      <Form.Check
-        type="switch"
-        label="Needs notify"
-        id="workTimerNeedsNotify"
-        checked={workSettings.needsNotify}
-        onChange={workSettings.onNeedsNotifyChange}
-      />
-      Over notify in
-      <Clock
-        readOnly={false}
-        hours={transformSecsToTime(workSettings.overNoifyInSecs).hours}
-        minutes={transformSecsToTime(workSettings.overNoifyInSecs).minutes}
-        seconds={transformSecsToTime(workSettings.overNoifyInSecs).seconds}
-        onTimeChange={workSettings.onOverNotifyInSecsChange}
-      />
-    </div>
-  );
-
-  return (
-    <div>
-      <div>Settings:</div>
-      {workClock}
-    </div>
-  );
-};
-
-export const PomodoroTimerWrapper = () => {
-  const [showSettings, setShowSettings] = useState(true);
-  const [workSettings, setworkSettings] = useState({
-    hours: 0,
-    minutes: 0,
-    seconds: 30,
-    needsNotify: true,
-    needsStop: false,
-    overNoifyInSecs: 10,
-    needsOver: true,
-    onTimeChange: (h, m, s) => handleTimeChange(h, m, s, setworkSettings),
-    onNeedsOverChange: (e) =>
-      handleCheckBoxChange(e, "needsOver", setworkSettings),
-    onNeedsNotifyChange: (e) =>
-      handleCheckBoxChange(e, "needsNotify", setworkSettings),
-    onNeedsStopChange: (e) =>
-      handleCheckBoxChange(e, "needsStop", setworkSettings),
-    onOverNotifyInSecsChange: (h, m, s) =>
-      handleOverNotifyInSecsChange(h, m, s, setworkSettings),
-  });
-
-  const handleSettingsButton = () => {
-    setShowSettings(!showSettings);
-  };
-  const handleTimeChange = (hours, minutes, seconds, setClock) => {
-    setClock((prev) => ({ ...prev, hours, minutes, seconds }));
-  };
-  const handleCheckBoxChange = (e, type, setTimer) => {
-    const checked = e.target.checked;
-    switch (type) {
-      case "needsOver":
-        setTimer((prev) => ({ ...prev, needsOver: checked }));
-        break;
-      case "needsNotify":
-        setTimer((prev) => ({ ...prev, needsNotify: checked }));
-        break;
-      case "needsStop":
-        setTimer((prev) => ({ ...prev, needsStop: checked }));
-        break;
-      default:
-        return;
-    }
-  };
-  const handleOverNotifyInSecsChange = (hours, minutes, seconds, setClock) => {
-    const overNoifyInSecs = transformTimeToSecs(hours, minutes, seconds);
-    setClock((prev) => ({ ...prev, overNoifyInSecs }));
-  };
-
-  const settings = !showSettings ? null : (
-    <Settings workSettings={workSettings} />
-  );
-
-  return (
-    <PomodoroTimer
-      settingsComponent={settings}
-      settingsBtnComponent={
-        <Button onClick={handleSettingsButton}>Settings</Button>
-      }
-      workSettings={workSettings}
-    />
-  );
-};
-
-const PomodoroButtons = ({
-  status,
-  onStartWorkBtn,
-  onPauseWorkBtn,
-  onStopWorkBtn,
-  onStartRelaxBtn,
-  onPauseRelaxBtn,
-  onStopRelaxBtn,
-  onStopBtn,
-}) => {
-  const getButton = (label, key, onClick, disabled = false) => {
-    return (
-      <Button key={key} onClick={onClick} disabled={disabled}>
-        {label}
-      </Button>
-    );
-  };
-
-  const stop = (disabled) => getButton("Stop", 0, onStopBtn, disabled);
-  const startWork = (disabled) =>
-    getButton("Start work", 1, onStartWorkBtn, disabled);
-  const pauseWork = (disabled) =>
-    getButton("Pause work", 2, onPauseWorkBtn, disabled);
-  const stopWork = (disabled) =>
-    getButton("Stop work", 3, onStopWorkBtn, disabled);
-  const startRelax = (disabled) =>
-    getButton("Start relax", 4, onStartRelaxBtn, disabled);
-  const pauseRelax = (disabled) =>
-    getButton("Pause relax", 5, onPauseRelaxBtn, disabled);
-  const stopRelax = (disabled) =>
-    getButton("Stop relax", 6, onStopRelaxBtn, disabled);
-
-  const buttonFactory = {
-    // stopped
-    0: [startWork(), pauseWork(true), stop(true)],
-    // work_running
-    1: [startWork(true), pauseWork(), stop()],
-    // work_paused
-    2: [startWork(), stopWork(), stop()],
-    // work_stoped
-    3: [startRelax(), pauseRelax(true), stop()],
-    // work_over_running
-    4: [startRelax(), pauseRelax(true), stop()],
-    // relax_running
-    5: [startRelax(true), pauseRelax(), stop()],
-    // relax_paused
-    6: [startRelax(), stopRelax(), stop()],
-    // relax_stoped
-    7: [startWork(), pauseWork(true), stop()],
-    // relax_over_running
-    8: [startWork(), pauseWork(true), stop()],
-  };
-
-  return <div className="buttons-wrapper">{buttonFactory[status]}</div>;
-};
-
 const PomodoroTimer = ({
   settingsBtnComponent,
   settingsComponent,
   workSettings,
+  relaxSettings,
+  bigRelaxSettings,
 }) => {
   const [workTimer, setWorkTimer] = useState({
     seconds: 0,
-    initSeconds: !workSettings
-      ? 10
-      : transformTimeToSecs(
-          workSettings.hours,
-          workSettings.minutes,
-          workSettings.seconds
-        ),
+    initSeconds: workSettings.seconds,
     count: 0,
-    needsNotify: !workSettings ? true : workSettings.needsNotify,
-    needsStop: !workSettings ? true : workSettings.needsStop,
-    overNoifyInSecs: !workSettings ? 30 : workSettings.overNoifyInSecs,
-    needsOver: true,
-    initNeedsOver: !workSettings ? true : workSettings.needsOver,
+    needsNotify: workSettings.needsNotify,
+    needsStop: workSettings.needsStop,
+    overSeconds: workSettings.overSeconds,
+    needsOver: workSettings.needsOver,
+    initNeedsOver: workSettings.needsOver,
   });
   const [relaxTimer, setRelaxTimer] = useState({
     seconds: 0,
@@ -220,7 +42,7 @@ const PomodoroTimer = ({
     count: 0,
     needsNotify: false,
     needsStop: false,
-    overNoifyInSecs: -1,
+    overSeconds: -1,
     needsOver: true,
     initNeedsOver: true,
   });
@@ -230,7 +52,7 @@ const PomodoroTimer = ({
     count: 0,
     needsNotify: false,
     needsStop: false,
-    overNoifyInSecs: -1,
+    overSeconds: -1,
     needsOver: false,
     initNeedsOver: true,
     period: 2,
@@ -248,26 +70,28 @@ const PomodoroTimer = ({
 
   // onMount
   // workSettings
+  const saveSettings = (from, set) => {
+    const { seconds, overSeconds, needsNotify, needsStop, needsOver } = from;
+    set((prev) => ({
+      ...prev,
+      seconds,
+      initSeconds: seconds,
+      needsNotify,
+      needsStop,
+      overSeconds,
+      needsOver,
+      initNeedsOver: workSettings.needsOver,
+    }));
+  };
   useEffect(() => {
-    console.log(workSettings);
-    //setStatus(pomodoroStatuses.stopped);
-    const initSecs = transformTimeToSecs(
-      workSettings.hours,
-      workSettings.minutes,
-      workSettings.seconds
-    );
-    setWorkTimer({
-      seconds: 0,
-      initSeconds: !workSettings ? 10 : initSecs,
-      count: 0,
-      needsNotify: !workSettings ? true : workSettings.needsNotify,
-      needsStop: !workSettings ? true : workSettings.needsStop,
-      overNoifyInSecs: !workSettings ? 30 : workSettings.overNoifyInSecs,
-      needsOver: !workSettings ? true : workSettings.needsOver,
-      initNeedsOver: !workSettings ? true : workSettings.needsOver,
-    });
-    resetToDefaultTime(workTimer, setWorkTimer);
-  }, [workSettings]);
+    //console.log(workSettings);
+    setStatus(pomodoroStatuses.stopped);
+
+    saveSettings(workSettings, setWorkTimer);
+    saveSettings(relaxSettings, setRelaxTimer);
+    saveSettings(bigRelaxSettings, setBigRelaxTimer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workSettings, relaxSettings, bigRelaxSettings]);
 
   //const [relaxType, setRelaxType] = useState(0);
   const relaxType =
@@ -492,17 +316,17 @@ const PomodoroTimer = ({
       if (
         status === pomodoroStatuses.work_over_running &&
         workTimer.needsNotify &&
-        seconds % workTimer.overNoifyInSecs === 0
+        seconds % workTimer.overSeconds === 0
       ) {
         type = "Work";
       } else if (
         status === pomodoroStatuses.relax_over_running &&
         ((relaxType === 1 &&
           relaxTimer.needsNotify &&
-          seconds % workTimer.overNoifyInSecs === 0) ||
+          seconds % workTimer.overSeconds === 0) ||
           (relaxType === 2 &&
             bigRelaxTimer.needsNotify &&
-            seconds % bigRelaxTimer.overNoifyInSecs === 0))
+            seconds % bigRelaxTimer.overSeconds === 0))
       ) {
         type = "Relax";
       }

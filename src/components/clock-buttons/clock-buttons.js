@@ -4,8 +4,6 @@ import React from "react";
 import "./styles.scss";
 
 export default function ClockButtons(props) {
-  //console.log(props);
-
   const start = (
     <Button key={1} onClick={props.onStartBtn}>
       Start
