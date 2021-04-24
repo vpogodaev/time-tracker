@@ -6,7 +6,7 @@ import ContinuousTimer from "../continuous-timer";
 import Timer from "../timer/timer";
 
 import "./styles.scss";
-import PomodoroTimer from "../pomodoro-timer";
+import { PomodoroTimerWrapper } from "../pomodoro-timer";
 
 export default function App() {
   useEffect(() => {
@@ -22,7 +22,7 @@ export default function App() {
     <Container>
       <Row>
         <Col>
-          <PomodoroTimer />
+          <PomodoroTimerWrapper />
           {/* <Watch
             hours={now.getHours()}
             minutes={now.getMinutes()}

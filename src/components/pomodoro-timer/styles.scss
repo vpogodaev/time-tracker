@@ -1,4 +1,5 @@
 .pomodoro-timer {
+  position: relative;
   padding: 20px;
   width: 550px;
   min-height: 170px;
@@ -8,6 +9,16 @@
     color: white;
     font-size: 22px;
     text-align: center;
+  }
+  &__settings {
+    margin-top: 20px;
+    &-btn {
+      position: absolute;
+      min-width: 100px;
+      min-height: 50px;
+      right: 0px;
+      top: 20px;
+    }
   }
 }
 
