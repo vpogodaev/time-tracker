@@ -10,6 +10,7 @@ import "./styles.scss";
 
 export default function App() {
   useEffect(() => {
+    console.log('Notification permission ask');
     if (!("Notification" in window)) {
       console.log("notifications disabled");
     } else {
