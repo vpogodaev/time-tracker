@@ -68,7 +68,6 @@ const Settings = ({
 
   const workClock = !workSettings ? null : (
     <div>
-      <div>Working timer:</div>
       <SettingsPosition
         seconds={workSettings.seconds}
         overSeconds={workSettings.overSeconds}
@@ -78,8 +77,8 @@ const Settings = ({
         onTimeChange={(s) => handleOnTimerChange(s, setWorkSettings)}
         onOverTimeChange={(s) => handleOnOverTimerChange(s, setWorkSettings)}
         onSwitchChange={(e, t) => handleOnSwitchChange(e, t, setWorkSettings)}
+        settingName="Working timer"
       />
-      <div>Relax timer:</div>
       <SettingsPosition
         seconds={relaxSettings.seconds}
         overSeconds={relaxSettings.overSeconds}
@@ -89,8 +88,8 @@ const Settings = ({
         onTimeChange={(s) => handleOnTimerChange(s, setRelaxSettings)}
         onOverTimeChange={(s) => handleOnOverTimerChange(s, setRelaxSettings)}
         onSwitchChange={(e, t) => handleOnSwitchChange(e, t, setRelaxSettings)}
+        settingName="Relax timer"
       />
-      <div>Big relax timer:</div>
       <SettingsPosition
         seconds={bigRelaxSettings.seconds}
         overSeconds={bigRelaxSettings.overSeconds}
@@ -104,13 +103,14 @@ const Settings = ({
         onSwitchChange={(e, t) =>
           handleOnSwitchChange(e, t, setBigRelaxSettings)
         }
+        settingName="Big relax timer"
       />
     </div>
   );
 
   return (
-    <div>
-      <div>Settings:</div>
+    <div className="settings">
+      <div className="settings__title">Settings</div>
       {workClock}
       <Button onClick={handleOnSaveClick}>Save</Button>
     </div>

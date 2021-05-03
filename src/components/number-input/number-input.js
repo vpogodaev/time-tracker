@@ -10,10 +10,13 @@ export default function NumberInput(props) {
     props.onChange(s, props.name);
   };
 
+  const className =
+    "input-time" + (props.readOnly ? " input-time__no-arrows" : "");
+
   return (
     <input
-      className="input-time"
-      type="number"
+      className={className}
+      type={props.readOnly ? "text" : "number"}
       value={props.value}
       onChange={onChange}
       readOnly={props.readOnly}

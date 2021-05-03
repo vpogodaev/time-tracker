@@ -5,7 +5,7 @@ import PomodoroTimerWrapper from "../pomodoro-timer-wrapper";
 
 import "./styles.scss";
 
-export default function App() {  
+export default function App() {
   useEffect(() => {
     // notif
     if (!("Notification" in window)) {
@@ -15,16 +15,8 @@ export default function App() {
     }
 
     // title
-    document.title = 'Timer app';
+    document.title = "Timer app";
   }, []);
 
-  return (
-    <Container>
-      <Row>
-        <Col>
-          <PomodoroTimerWrapper />
-        </Col>
-      </Row>
-    </Container>
-  );
+  return <PomodoroTimerWrapper />;
 }

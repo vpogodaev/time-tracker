@@ -1,0 +1,30 @@
+.settings {
+  &__position {
+    &::after {
+      //&::after {
+      content: "";
+      display: block;
+      border-top: 2px dotted #fff;
+      width: 100%;
+    }
+    &:last-of-type::after {
+      border: none;
+    }
+  }
+  &__switches {
+    margin-top: 5px;
+    list-style: none;
+    display: flex;
+    justify-content: space-around;
+  }
+  &__clock {
+    &-wrapper {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+    }
+    &-name {
+      margin-left: 20%;
+      align-self: center;
+    }
+  }
+}

@@ -1,11 +1,16 @@
 .input-time {
   border: none;
   font-size: 30px;
-  width: 40px;
+  width: 55px;
+  background: firebrick;
+  color: white;
 
-  &::-webkit-outer-spin-button,
-  &::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
+  &__no-arrows {
+    width: 40px;
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
   }
 }
