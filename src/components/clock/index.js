@@ -1,2 +1,2 @@
-import Clock from './clock';
+import Clock from "./clock";
 export default Clock;

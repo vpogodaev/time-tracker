@@ -1,12 +1,12 @@
-import React from 'react'
-import NumberInput from '../number-input';
+import React from "react";
+import NumberInput from "../number-input";
 
-import './styles.scss';
+import "./styles.scss";
 
 export default function Clock(props) {
   const timeToString = (time) => {
     return time < 10 ? "0" + time : time;
-  }
+  };
 
   const handleChangeNumber = (value, name) => {
     let { hours, minutes, seconds } = props;
@@ -48,7 +48,7 @@ export default function Clock(props) {
     }
 
     props.onTimeChange(hours, minutes, seconds);
-  }
+  };
 
   return (
     <div className="clock">

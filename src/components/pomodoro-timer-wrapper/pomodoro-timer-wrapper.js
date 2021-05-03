@@ -9,22 +9,22 @@ import "./styles.scss";
 const PomodoroTimerWrapper = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [workSettings, setWorkSettings] = useState({
-    seconds: 15,
-    overSeconds: 10,
+    seconds: 1800,
+    overSeconds: 120,
     needsNotify: true,
     needsStop: false,
     needsOver: true,
   });
   const [relaxSettings, setRelaxSettings] = useState({
-    seconds: 5,
-    overSeconds: 10,
+    seconds: 300,
+    overSeconds: 60,
     needsNotify: true,
     needsStop: false,
     needsOver: true,
   });
   const [bigRelaxSettings, setBigRelaxSettings] = useState({
-    seconds: 10,
-    overSeconds: 10,
+    seconds: 600,
+    overSeconds: 90,
     needsNotify: true,
     needsStop: false,
     needsOver: true,

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 
 import useInterval from "../../hooks/useInterval";
-import { transformSecsToTime } from "../../utils/timeTransform";
+import { getTimeNum, transSecsToTime } from "../../utils/timeTransform";
 import Clock from "../clock";
 import PomodoroButtons from "../pomodoro-buttons";
 
@@ -38,24 +38,24 @@ const PomodoroTimer = ({
   });
   const [relaxTimer, setRelaxTimer] = useState({
     seconds: 0,
-    initSeconds: 2,
+    initSeconds: relaxSettings.seconds,
     count: 0,
-    needsNotify: false,
-    needsStop: false,
-    overSeconds: -1,
-    needsOver: true,
-    initNeedsOver: true,
+    needsNotify: relaxSettings.needsNotify,
+    needsStop: relaxSettings.needsStop,
+    overSeconds: relaxSettings.overSeconds,
+    needsOver: relaxSettings.needsOver,
+    initNeedsOver: relaxSettings.needsOver,
   });
   const [bigRelaxTimer, setBigRelaxTimer] = useState({
     seconds: 0,
-    initSeconds: 3,
+    initSeconds: bigRelaxSettings.seconds,
     count: 0,
-    needsNotify: false,
-    needsStop: false,
-    overSeconds: -1,
-    needsOver: false,
-    initNeedsOver: true,
-    period: 2,
+    needsNotify: bigRelaxSettings.needsNotify,
+    needsStop: bigRelaxSettings.needsStop,
+    overSeconds: bigRelaxSettings.overSeconds,
+    needsOver: bigRelaxSettings.needsOver,
+    initNeedsOver: bigRelaxSettings.needsOver,
+    period: bigRelaxSettings.period,
   });
   const [displayTimer, setDisplayTimer] = useState({
     hours: 0,
@@ -93,7 +93,6 @@ const PomodoroTimer = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workSettings, relaxSettings, bigRelaxSettings]);
 
-  //const [relaxType, setRelaxType] = useState(0);
   const relaxType =
     status === 3 || (status >= 5 && status <= 8)
       ? bigRelaxTimer.initSeconds > 0 &&
@@ -112,7 +111,7 @@ const PomodoroTimer = ({
     }));
   };
   const updateDisplayTime = (secs) => {
-    const { hours, minutes, seconds } = transformSecsToTime(secs);
+    const { hours, minutes, seconds } = transSecsToTime(secs);
     setDisplayTimer({
       hours,
       minutes,
@@ -134,6 +133,7 @@ const PomodoroTimer = ({
   };
   // переключение статуса
   useEffect(() => {
+    //console.log('status change', new Date());
     if (status === pomodoroStatuses.stopped) {
       resetToDefaultTime(workTimer, setWorkTimer);
       resetToDefaultTime(relaxTimer, setRelaxTimer);
@@ -237,6 +237,28 @@ const PomodoroTimer = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workTimer, relaxTimer, bigRelaxTimer, overTime]);
+  // обновление tab title
+  useEffect(() => {
+    const { hours, minutes, seconds } = displayTimer;
+    const time =
+      `${getTimeNum(hours)}` +
+      `:${getTimeNum(minutes)}` +
+      `:${getTimeNum(seconds)}`;
+
+    const labels = {
+      0: "Stopped",
+      1: `Work ${time}`,
+      2: `Work paused ${time}`,
+      3: "Stopped",
+      4: `Work over ${time}`,
+      5: `Relax ${time}`,
+      6: `Relax paused ${time}`,
+      7: "Stopped",
+      8: `Relax over ${time}`,
+    };
+
+    document.title = labels[status];
+  }, [status, displayTimer]);
 
   const stopWork = () => {
     setWorkTimer((prev) => ({
@@ -331,7 +353,7 @@ const PomodoroTimer = ({
         type = "Relax";
       }
       if (type) {
-        const time = transformSecsToTime(seconds);
+        const time = transSecsToTime(seconds);
         const sTime =
           `${time.hours ? time.hours + "h " : ""}` +
           `${time.minutes ? time.minutes + "m " : ""}` +

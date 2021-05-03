@@ -1,9 +1,10 @@
+import { nanoid } from "nanoid";
 import React from "react";
 import { Form } from "react-bootstrap";
 
 import {
-  transformSecsToTime,
-  transformTimeToSecs,
+  transSecsToTime,
+  transTimeToSecs,
 } from "../../utils/timeTransform";
 
 import Clock from "../clock";
@@ -20,11 +21,11 @@ const SettingsPosition = ({
   onOverTimeChange,
   onSwitchChange,
 }) => {
-  const time = transformSecsToTime(seconds);
-  const overTime = transformSecsToTime(overSeconds);
+  const time = transSecsToTime(seconds);
+  const overTime = transSecsToTime(overSeconds);
 
   const handleOnTimeChange = (hours, minutes, seconds, onChange) => {
-    const secs = transformTimeToSecs(hours, minutes, seconds);
+    const secs = transTimeToSecs(hours, minutes, seconds);
     onChange(secs);
   };
 
@@ -40,21 +41,21 @@ const SettingsPosition = ({
       <Form.Check
         type="switch"
         label="Needs over"
-        id="workTimerNeedsOver"
+        id={nanoid()}
         checked={needsOver}
         onChange={(e) => onSwitchChange(e, "needsOver")}
       />
       <Form.Check
         type="switch"
         label="Needs stop"
-        id="workTimerNeedsStop"
+        id={nanoid()}
         checked={needsStop}
         onChange={(e) => onSwitchChange(e, "needsStop")}
       />
       <Form.Check
         type="switch"
         label="Needs notify"
-        id="workTimerNeedsNotify"
+        id={nanoid()}
         checked={needsNotify}
         onChange={(e) => onSwitchChange(e, "needsNotify")}
       />
