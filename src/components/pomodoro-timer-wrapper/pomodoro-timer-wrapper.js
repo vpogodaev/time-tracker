@@ -32,7 +32,10 @@ const PomodoroTimerWrapper = () => {
     period: 2,
   });
 
-  const handleSettingsButton = () => setShowSettings((prevSett) => !prevSett);
+  const handleSettingsButton = () => {
+    setShowSettings(!showSettings);
+  };
+
   const save = (from, set) => {
     console.log(from);
     const { seconds, overSeconds, needsNotify, needsStop, needsOver } = from;
@@ -56,15 +59,12 @@ const PomodoroTimerWrapper = () => {
     save(bigRelaxTimerSettings, setBigRelaxSettings);
   };
 
-  const settings = showSettings && (
+  const settings = !showSettings ? null : (
     <Settings
       onSaveClick={handleOnSaveClick}
-      workSettings={workSettings}
-      setWorkSettings={setWorkSettings}
-      relaxSettings={relaxSettings}
-      setRelaxSettings={setRelaxSettings}
-      bigRelaxSettings={bigRelaxSettings}
-      setBigRelaxSettings={setBigRelaxSettings}
+      workTimerSettings={workSettings}
+      relaxTimerSettings={relaxSettings}
+      bigRelaxTimerSettings={bigRelaxSettings}
     />
   );
 
