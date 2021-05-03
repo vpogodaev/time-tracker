@@ -16,8 +16,13 @@ export default function useInterval(callback, delay) {
       savedCallback.current();
     }
     if (delay !== null) {
-      let id = setInterval(tick, delay);
-      return () => clearInterval(id);
+      const worker = new window.Worker("./workers/set-interval-worker.js");
+      worker.postMessage({ delay });
+      worker.onerror = (err) => console.error(err);
+      worker.onmessage = (e) => {
+        tick();
+      };
+      return () => worker.terminate();
     }
   }, [delay]);
 }

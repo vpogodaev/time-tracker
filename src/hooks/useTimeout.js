@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef } from "react";
 
 export default function useTimeout(callback, delay) {
   const savedCallback = useRef();
@@ -8,12 +8,17 @@ export default function useTimeout(callback, delay) {
   }, [callback]);
 
   useEffect(() => {
-    function tick() {
+    function action() {
       savedCallback.current();
     }
     if (delay !== null) {
-      let id = setTimeout(tick, delay);
-      return () => clearTimeout(id);
+      const worker = new window.Worker("./workers/set-timeout-worker.js");
+      worker.postMessage({ delay });
+      worker.onerror = (err) => console.error(err);
+      worker.onmessage = () => {
+        action();
+      };
+      return () => worker.terminate();
     }
   }, [delay]);
 }

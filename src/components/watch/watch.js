@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import useInterval from "../../hooks/useInterval";
 import {
-  transformSecsToTime,
-  transformTimeToSecs,
+  transSecsToTime,
+  transTimeToSecs,
 } from "../../utils/timeTransform";
 import Clock from "../clock";
 import { watchStatuses as statuses } from "../../constants";
@@ -23,8 +23,8 @@ export default function Watch(props) {
   useInterval(() => handleTick(), props.status === statuses.r ? 1000 : null);
 
   const handleTick = () => {
-    const secs = transformTimeToSecs(hours, minutes, seconds);
-    const time = transformSecsToTime(secs + 1);
+    const secs = transTimeToSecs(hours, minutes, seconds);
+    const time = transSecsToTime(secs + 1);
 
     setHours(time.hours);
     setMinutes(time.minutes);
